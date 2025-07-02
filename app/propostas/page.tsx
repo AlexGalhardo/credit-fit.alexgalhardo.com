@@ -7,19 +7,53 @@ import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Eye, EyeOff, ChevronDown, ChevronUp, Clock, CheckCircle, XCircle } from "lucide-react";
+
+interface Company {
+	id: string;
+	name: string;
+	email: string;
+	cpf: string;
+	cnpj: string;
+	legalName: string;
+	createdAt: string;
+	updatedAt: string;
+	deletedAt: string | null;
+}
+
+interface Employee {
+	id: string;
+	fullName: string;
+	email: string;
+	cpf: string;
+	salary: number;
+	currentlyEmployed: boolean;
+	createdAt: string;
+	updatedAt: string;
+	deletedAt: string | null;
+	companyCnpj: string | null;
+}
 
 interface Proposal {
 	id: string;
-	userId: string;
-	userName: string;
-	userEmail: string;
 	status: "pending" | "approved" | "rejected";
-	amount: number;
-	installments: number;
-	installmentValue: number;
-	company: string;
-	dueDate: string;
+	totalLoanAmount: number;
+	numberOfInstallments: number;
+	installmentAmount: number;
+	firstDueDate: string;
+	installmentsPaid: number;
 	createdAt: string;
+	updatedAt: string;
+	deletedAt: string | null;
+	companyName: string;
+	employerEmail: string;
+	company: Company;
+	employee: Employee;
+}
+
+interface ApiResponse {
+	success: boolean;
+	data: Proposal[];
 }
 
 export default function PropostasPage() {
@@ -27,6 +61,8 @@ export default function PropostasPage() {
 	const router = useRouter();
 	const [proposals, setProposals] = useState<Proposal[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+	const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
 		if (status === "unauthenticated") {
@@ -44,10 +80,10 @@ export default function PropostasPage() {
 
 	const fetchAllProposals = async () => {
 		try {
-			const response = await fetch("/api/admin/proposals");
+			const response = await fetch("http://localhost:3000/proposals");
 			if (response.ok) {
-				const data = await response.json();
-				setProposals(data);
+				const data: ApiResponse = await response.json();
+				setProposals(data.data);
 			}
 		} catch (error) {
 			console.error("Erro ao buscar propostas:", error);
@@ -56,52 +92,42 @@ export default function PropostasPage() {
 		}
 	};
 
-	const updateProposalStatus = async (proposalId: string, newStatus: "approved" | "rejected") => {
-		try {
-			const response = await fetch(`/api/admin/proposals/${proposalId}`, {
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ status: newStatus }),
-			});
-
-			if (response.ok) {
-				setProposals(proposals.map((p) => (p.id === proposalId ? { ...p, status: newStatus } : p)));
-			}
-		} catch (error) {
-			console.error("Erro ao atualizar proposta:", error);
-		}
+	const formatCurrency = (amount: number) => {
+		return (amount / 100).toLocaleString("pt-BR", {
+			style: "currency",
+			currency: "BRL",
+		});
 	};
 
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case "pending":
-				return "bg-yellow-100 text-yellow-800";
-			case "approved":
-				return "bg-green-100 text-green-800";
-			case "rejected":
-				return "bg-red-100 text-red-800";
-			default:
-				return "bg-gray-100 text-gray-800";
-		}
+	const formatDate = (dateString: string) => {
+		return new Date(dateString).toLocaleDateString("pt-BR");
 	};
 
-	const getStatusText = (status: string) => {
-		switch (status) {
-			case "pending":
-				return "Pendente";
-			case "approved":
-				return "Aprovado";
-			case "rejected":
-				return "Rejeitado";
-			default:
-				return "Desconhecido";
+	const toggleCardExpansion = (cardId: string) => {
+		const newExpanded = new Set(expandedCards);
+		if (newExpanded.has(cardId)) {
+			newExpanded.delete(cardId);
+		} else {
+			newExpanded.add(cardId);
 		}
+		setExpandedCards(newExpanded);
+	};
+
+	const toggleCardVisibility = (cardId: string) => {
+		const newHidden = new Set(hiddenCards);
+		if (newHidden.has(cardId)) {
+			newHidden.delete(cardId);
+		} else {
+			newHidden.add(cardId);
+		}
+		setHiddenCards(newHidden);
+	};
+
+	const getProposalNumber = (index: number, status: string) => {
+		return `${status === "approved" ? "EMPRÉSTIMO CORRENTE" : "SOLICITAÇÃO DE EMPRÉSTIMO"} ${String(index + 1).padStart(2, "0")}`;
 	};
 
 	const groupedProposals = {
-		pending: proposals.filter((p) => p.status === "pending"),
 		approved: proposals.filter((p) => p.status === "approved"),
 		rejected: proposals.filter((p) => p.status === "rejected"),
 	};
@@ -114,6 +140,134 @@ export default function PropostasPage() {
 		return null;
 	}
 
+	const ProposalCard = ({ proposal, index, status }: { proposal: Proposal; index: number; status: string }) => {
+		const isExpanded = expandedCards.has(proposal.id);
+		const isHidden = hiddenCards.has(proposal.id);
+		const proposalNumber = getProposalNumber(index, status);
+
+		return (
+			<Card className="w-full">
+				<CardHeader className="pb-3">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-2">
+							{status === "approved" ? (
+								<CheckCircle className="w-4 h-4 text-green-600" />
+							) : (
+								<Clock className="w-4 h-4 text-orange-600" />
+							)}
+							<CardTitle className="text-sm font-medium text-gray-700">{proposalNumber}</CardTitle>
+						</div>
+						<Button variant="ghost" size="sm" onClick={() => toggleCardExpansion(proposal.id)}>
+							{isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+						</Button>
+					</div>
+				</CardHeader>
+
+				{isExpanded && (
+					<CardContent className="pt-0">
+						<div className="space-y-4">
+							{/* Status Badge */}
+							<div className="flex items-center justify-between">
+								<Badge
+									className={`${
+										status === "approved"
+											? "bg-green-100 text-green-800"
+											: "bg-orange-100 text-orange-800"
+									}`}
+								>
+									{status === "approved" ? "Crédito aprovado" : "Reprovado por score"}
+								</Badge>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => toggleCardVisibility(proposal.id)}
+									className="text-gray-500"
+								>
+									{isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+									<span className="ml-1 text-xs">Ocultar</span>
+								</Button>
+							</div>
+
+							{!isHidden && (
+								<>
+									{/* Empresa e Próximo Vencimento */}
+									<div className="grid grid-cols-2 gap-4">
+										<div>
+											<p className="text-sm font-medium text-gray-700 mb-1">Empresa</p>
+											<p className="text-sm text-gray-600">{proposal.company.name}</p>
+										</div>
+										<div>
+											<p className="text-sm font-medium text-gray-700 mb-1">Próximo Vencimento</p>
+											<p className="text-sm text-gray-600">{formatDate(proposal.firstDueDate)}</p>
+										</div>
+									</div>
+
+									{/* Informações do Empréstimo */}
+									{status === "approved" ? (
+										<>
+											<div className="grid grid-cols-2 gap-4">
+												<div>
+													<p className="text-sm font-medium text-gray-700 mb-1">
+														Total Financiado
+													</p>
+													<p className="text-sm text-gray-900 font-medium">
+														{formatCurrency(proposal.totalLoanAmount)}
+													</p>
+												</div>
+												<div>
+													<p className="text-sm font-medium text-gray-700 mb-1">
+														Valor da parcela
+													</p>
+													<p className="text-sm text-gray-900 font-medium">
+														{formatCurrency(proposal.installmentAmount)}
+													</p>
+												</div>
+											</div>
+											<div>
+												<p className="text-sm font-medium text-gray-700 mb-1">
+													Número de parcelas
+												</p>
+												<p className="text-sm text-gray-600">
+													{proposal.numberOfInstallments} x
+												</p>
+											</div>
+										</>
+									) : (
+										<div className="grid grid-cols-2 gap-4">
+											<div>
+												<p className="text-sm font-medium text-gray-700 mb-1">
+													Número de parcelas
+												</p>
+												<p className="text-sm text-gray-600">
+													{proposal.numberOfInstallments} x
+												</p>
+											</div>
+											<div>
+												<p className="text-sm font-medium text-gray-700 mb-1">
+													Valor da Parcela
+												</p>
+												<p className="text-sm text-gray-900 font-medium">
+													{formatCurrency(proposal.installmentAmount)}
+												</p>
+											</div>
+										</div>
+									)}
+
+									{/* Mais detalhes link */}
+									<div className="pt-2">
+										<Button variant="link" className="text-teal-600 p-0 h-auto text-sm">
+											Mais detalhes
+										</Button>
+									</div>
+								</>
+							)}
+						</div>
+					</CardContent>
+				)}
+			</Card>
+		);
+	};
+
 	return (
 		<div className="min-h-screen bg-gray-50">
 			<Navbar />
@@ -124,79 +278,7 @@ export default function PropostasPage() {
 					<p className="text-gray-600">Gerencie todas as propostas de empréstimo</p>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-					{/* Coluna Pendentes */}
-					<div className="space-y-4">
-						<div className="flex items-center justify-between">
-							<h2 className="text-lg font-semibold text-gray-900">Pendentes</h2>
-							<Badge variant="secondary">{groupedProposals.pending.length}</Badge>
-						</div>
-
-						<div className="space-y-3">
-							{groupedProposals.pending.map((proposal) => (
-								<Card key={proposal.id} className="border-l-4 border-l-yellow-400">
-									<CardHeader className="pb-3">
-										<div className="flex items-center justify-between">
-											<CardTitle className="text-sm font-medium">{proposal.userName}</CardTitle>
-											<Badge className={getStatusColor(proposal.status)}>
-												{getStatusText(proposal.status)}
-											</Badge>
-										</div>
-										<p className="text-xs text-gray-500">{proposal.userEmail}</p>
-									</CardHeader>
-									<CardContent className="pt-0">
-										<div className="space-y-2 text-sm">
-											<div className="flex justify-between">
-												<span className="text-gray-600">Valor:</span>
-												<span className="font-medium">
-													R${" "}
-													{proposal.amount.toLocaleString("pt-BR", {
-														minimumFractionDigits: 2,
-													})}
-												</span>
-											</div>
-											<div className="flex justify-between">
-												<span className="text-gray-600">Parcelas:</span>
-												<span>{proposal.installments}x</span>
-											</div>
-											<div className="flex justify-between">
-												<span className="text-gray-600">Valor/Parcela:</span>
-												<span>
-													R${" "}
-													{proposal.installmentValue.toLocaleString("pt-BR", {
-														minimumFractionDigits: 2,
-													})}
-												</span>
-											</div>
-										</div>
-
-										<div className="flex gap-2 mt-4">
-											<Button
-												size="sm"
-												className="flex-1 bg-green-600 hover:bg-green-700"
-												onClick={() => updateProposalStatus(proposal.id, "approved")}
-											>
-												Aprovar
-											</Button>
-											<Button
-												size="sm"
-												variant="destructive"
-												className="flex-1"
-												onClick={() => updateProposalStatus(proposal.id, "rejected")}
-											>
-												Rejeitar
-											</Button>
-										</div>
-									</CardContent>
-								</Card>
-							))}
-
-							{groupedProposals.pending.length === 0 && (
-								<div className="text-center py-8 text-gray-500">Nenhuma proposta pendente</div>
-							)}
-						</div>
-					</div>
-
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* Coluna Aprovados */}
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
@@ -205,39 +287,8 @@ export default function PropostasPage() {
 						</div>
 
 						<div className="space-y-3">
-							{groupedProposals.approved.map((proposal) => (
-								<Card key={proposal.id} className="border-l-4 border-l-green-400">
-									<CardHeader className="pb-3">
-										<div className="flex items-center justify-between">
-											<CardTitle className="text-sm font-medium">{proposal.userName}</CardTitle>
-											<Badge className={getStatusColor(proposal.status)}>
-												{getStatusText(proposal.status)}
-											</Badge>
-										</div>
-										<p className="text-xs text-gray-500">{proposal.userEmail}</p>
-									</CardHeader>
-									<CardContent className="pt-0">
-										<div className="space-y-2 text-sm">
-											<div className="flex justify-between">
-												<span className="text-gray-600">Valor:</span>
-												<span className="font-medium">
-													R${" "}
-													{proposal.amount.toLocaleString("pt-BR", {
-														minimumFractionDigits: 2,
-													})}
-												</span>
-											</div>
-											<div className="flex justify-between">
-												<span className="text-gray-600">Parcelas:</span>
-												<span>{proposal.installments}x</span>
-											</div>
-											<div className="flex justify-between">
-												<span className="text-gray-600">Empresa:</span>
-												<span>{proposal.company}</span>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
+							{groupedProposals.approved.map((proposal, index) => (
+								<ProposalCard key={proposal.id} proposal={proposal} index={index} status="approved" />
 							))}
 
 							{groupedProposals.approved.length === 0 && (
@@ -254,39 +305,8 @@ export default function PropostasPage() {
 						</div>
 
 						<div className="space-y-3">
-							{groupedProposals.rejected.map((proposal) => (
-								<Card key={proposal.id} className="border-l-4 border-l-red-400">
-									<CardHeader className="pb-3">
-										<div className="flex items-center justify-between">
-											<CardTitle className="text-sm font-medium">{proposal.userName}</CardTitle>
-											<Badge className={getStatusColor(proposal.status)}>
-												{getStatusText(proposal.status)}
-											</Badge>
-										</div>
-										<p className="text-xs text-gray-500">{proposal.userEmail}</p>
-									</CardHeader>
-									<CardContent className="pt-0">
-										<div className="space-y-2 text-sm">
-											<div className="flex justify-between">
-												<span className="text-gray-600">Valor:</span>
-												<span className="font-medium">
-													R${" "}
-													{proposal.amount.toLocaleString("pt-BR", {
-														minimumFractionDigits: 2,
-													})}
-												</span>
-											</div>
-											<div className="flex justify-between">
-												<span className="text-gray-600">Parcelas:</span>
-												<span>{proposal.installments}x</span>
-											</div>
-											<div className="flex justify-between">
-												<span className="text-gray-600">Motivo:</span>
-												<span className="text-red-600">Score baixo</span>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
+							{groupedProposals.rejected.map((proposal, index) => (
+								<ProposalCard key={proposal.id} proposal={proposal} index={index} status="rejected" />
 							))}
 
 							{groupedProposals.rejected.length === 0 && (
