@@ -7,18 +7,24 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
+import { SessionWithRole } from "@/types/session";
+import LoadingScreen from "@/components/loading-screen";
 
 export default function NovaPropostaPage() {
-	const { data: session, status } = useSession();
+	const { data: session, status } = useSession() as { data: SessionWithRole; status: string };
 	const router = useRouter();
 	const [step, setStep] = useState(1);
-	const [amount, setAmount] = useState([10000]);
+	const [amount, setAmount] = useState([1000]);
 	const [selectedInstallments, setSelectedInstallments] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		if (status === "unauthenticated") {
 			router.push("/entrar");
+		}
+
+		if (status === "authenticated" && session?.user?.role === "admin") {
+			router.push("/propostas");
 		}
 	}, [status, router]);
 
@@ -56,25 +62,20 @@ export default function NovaPropostaPage() {
 			});
 
 			if (response.ok) {
-				router.push("/dashboard");
+				router.push("/nova-proposta");
 			} else {
 				alert("Erro ao criar proposta");
 			}
 		} catch (error) {
-			console.error("Erro ao criar proposta:", error);
 			alert("Erro ao criar proposta");
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	if (status === "loading") {
-		return <div>Carregando...</div>;
-	}
+	if (status === "loading") return <LoadingScreen />;
 
-	if (!session) {
-		return null;
-	}
+	if (!session) return null;
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -82,9 +83,6 @@ export default function NovaPropostaPage() {
 
 			<div className="max-w-4xl mx-auto p-6">
 				<div className="flex items-center gap-4 mb-6">
-					<Button variant="ghost" size="sm" onClick={() => router.back()}>
-						←
-					</Button>
 					<div>
 						<div className="text-sm text-gray-500">Home / Crédito Consignado</div>
 						<h1 className="text-2xl font-semibold text-teal-600">Crédito Consignado</h1>
@@ -118,14 +116,14 @@ export default function NovaPropostaPage() {
 										<Slider
 											value={amount}
 											onValueChange={setAmount}
-											max={50000}
+											max={12000}
 											min={1000}
 											step={1000}
 											className="w-full"
 										/>
 										<div className="flex justify-between text-sm text-gray-500 mt-2">
 											<span>R$ 1.000</span>
-											<span>R$ 50.000</span>
+											<span>R$ 12.000</span>
 										</div>
 									</div>
 								</div>

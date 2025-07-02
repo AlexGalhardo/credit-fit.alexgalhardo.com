@@ -20,6 +20,7 @@ export default function LandingPage() {
 
 					<Button
 						asChild
+						disabled
 						variant="outline"
 						className="w-full h-12 border-white text-white hover:bg-white hover:text-teal-700 font-semibold bg-transparent"
 					>

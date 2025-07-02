@@ -10,9 +10,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, User } from "lucide-react";
+import { SessionWithRole } from "@/types/session";
 
 export function Navbar() {
-	const { data: session } = useSession();
+	const { data: session } = useSession() as { data: SessionWithRole };
 
 	if (!session) return null;
 
@@ -24,12 +25,6 @@ export function Navbar() {
 				</Link>
 
 				<div className="flex items-center gap-4">
-					{session.user?.role === "admin" && (
-						<Link href="/propostas" className="hover:text-teal-200">
-							Propostas
-						</Link>
-					)}
-
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="text-white hover:bg-teal-700 flex items-center gap-2">

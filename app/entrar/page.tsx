@@ -2,20 +2,28 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SessionWithRole } from "@/types/session";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
+
+	const { data: session } = useSession() as { data: SessionWithRole; status: string };
+
+	useEffect(() => {
+		if (session && session.user?.role === "admin") router.push("/propostas");
+		else if (session && session.user?.role !== "admin") router.push("/nova-proposta");
+	}, [session, router]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -28,13 +36,14 @@ export default function LoginPage() {
 				redirect: false,
 			});
 
+			console.log("result signIn -> ", result);
+
 			if (result?.ok) {
-				router.push("/dashboard");
+				router.push("/nova-proposta");
 			} else {
 				alert("Credenciais inválidas");
 			}
 		} catch (error) {
-			console.error("Erro no login:", error);
 			alert("Erro ao fazer login");
 		} finally {
 			setLoading(false);
@@ -92,10 +101,10 @@ export default function LoginPage() {
 						<div className="mt-6 p-4 bg-gray-100 rounded-lg">
 							<p className="text-sm font-semibold mb-2">Contas de teste:</p>
 							<p className="text-xs text-gray-600">
-								<strong>Admin:</strong> admin@credifit.com / admin123
+								<strong>Admin:</strong> admin@gmail.com / admin123
 							</p>
 							<p className="text-xs text-gray-600">
-								<strong>Usuário:</strong> user@credifit.com / user123
+								<strong>Usuário:</strong> empregado@gmail.com / empregado123
 							</p>
 						</div>
 					</CardContent>

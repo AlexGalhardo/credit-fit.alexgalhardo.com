@@ -97,6 +97,13 @@ const mockCompanies = [
 	{ cnpj: "11444777000161", name: "Tech Solutions Ltda" },
 	{ cnpj: "22555888000172", name: "Inovação Digital S.A." },
 	{ cnpj: "33666999000183", name: "Consultoria Moderna Ltda" },
+	{ cnpj: "44777000100014", name: "Logística Rápida ME" },
+	{ cnpj: "55888000200025", name: "AgroTech Brasil Ltda" },
+	{ cnpj: "66999000300036", name: "EducaMais S.A." },
+	{ cnpj: "77000100400047", name: "Construtora Futura Ltda" },
+	{ cnpj: "88000200500058", name: "Serviços Médicos Avançados" },
+	{ cnpj: "99000300600069", name: "Mercado Online Varejo Ltda" },
+	{ cnpj: "10101010000070", name: "Green Energy Solutions S.A." },
 ];
 
 export default function SignUpPage() {
@@ -189,10 +196,6 @@ export default function SignUpPage() {
 	return (
 		<div className="min-h-screen bg-gray-50 flex items-center justify-center">
 			<div className="max-w-md w-full mx-4">
-				<div className="text-center mb-8">
-					<div className="text-teal-600 text-2xl font-bold mb-2">Credit Fit</div>
-				</div>
-
 				<Card>
 					<CardHeader>
 						<CardTitle>Criar Conta</CardTitle>
@@ -310,11 +313,7 @@ export default function SignUpPage() {
 										)}
 									</div>
 
-									<Button
-										type="submit"
-										className="w-full bg-teal-600 hover:bg-teal-700"
-										disabled={loading}
-									>
+									<Button disabled type="submit" className="w-full bg-teal-600 hover:bg-teal-700">
 										{loading ? "Criando..." : "Criar Empresa"}
 									</Button>
 								</form>
@@ -458,11 +457,7 @@ export default function SignUpPage() {
 										)}
 									</div>
 
-									<Button
-										type="submit"
-										className="w-full bg-teal-600 hover:bg-teal-700"
-										disabled={loading}
-									>
+									<Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled>
 										{loading ? "Criando..." : "Criar Conta"}
 									</Button>
 								</form>

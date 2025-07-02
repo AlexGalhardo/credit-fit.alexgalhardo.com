@@ -7,7 +7,9 @@ import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, ChevronDown, ChevronUp, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Eye, EyeOff, ChevronDown, ChevronUp, Clock, CheckCircle } from "lucide-react";
+import { SessionWithRole } from "@/types/session";
+import LoadingScreen from "@/components/loading-screen";
 
 interface Company {
 	id: string;
@@ -57,7 +59,7 @@ interface ApiResponse {
 }
 
 export default function PropostasPage() {
-	const { data: session, status } = useSession();
+	const { data: session, status } = useSession() as { data: SessionWithRole; status: string };
 	const router = useRouter();
 	const [proposals, setProposals] = useState<Proposal[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export default function PropostasPage() {
 		if (status === "unauthenticated") {
 			router.push("/entrar");
 		} else if (session?.user?.role !== "admin") {
-			router.push("/dashboard");
+			router.push("/nova-proposta");
 		}
 	}, [status, session, router]);
 
@@ -132,13 +134,9 @@ export default function PropostasPage() {
 		rejected: proposals.filter((p) => p.status === "rejected"),
 	};
 
-	if (status === "loading" || loading) {
-		return <div>Carregando...</div>;
-	}
+	if (status === "loading" || loading) return <LoadingScreen />;
 
-	if (!session || session.user?.role !== "admin") {
-		return null;
-	}
+	if (!session || session.user?.role !== "admin") return null;
 
 	const ProposalCard = ({ proposal, index, status }: { proposal: Proposal; index: number; status: string }) => {
 		const isExpanded = expandedCards.has(proposal.id);
@@ -166,7 +164,6 @@ export default function PropostasPage() {
 				{isExpanded && (
 					<CardContent className="pt-0">
 						<div className="space-y-4">
-							{/* Status Badge */}
 							<div className="flex items-center justify-between">
 								<Badge
 									className={`${
@@ -190,7 +187,6 @@ export default function PropostasPage() {
 
 							{!isHidden && (
 								<>
-									{/* Empresa e Próximo Vencimento */}
 									<div className="grid grid-cols-2 gap-4">
 										<div>
 											<p className="text-sm font-medium text-gray-700 mb-1">Empresa</p>
@@ -202,7 +198,6 @@ export default function PropostasPage() {
 										</div>
 									</div>
 
-									{/* Informações do Empréstimo */}
 									{status === "approved" ? (
 										<>
 											<div className="grid grid-cols-2 gap-4">
@@ -253,7 +248,6 @@ export default function PropostasPage() {
 										</div>
 									)}
 
-									{/* Mais detalhes link */}
 									<div className="pt-2">
 										<Button variant="link" className="text-teal-600 p-0 h-auto text-sm">
 											Mais detalhes
@@ -279,7 +273,6 @@ export default function PropostasPage() {
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{/* Coluna Aprovados */}
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<h2 className="text-lg font-semibold text-gray-900">Aprovados</h2>
@@ -297,7 +290,6 @@ export default function PropostasPage() {
 						</div>
 					</div>
 
-					{/* Coluna Rejeitados */}
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<h2 className="text-lg font-semibold text-gray-900">Rejeitados</h2>
