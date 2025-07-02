@@ -104,7 +104,23 @@ export default function LoginPage() {
 								<strong>Admin:</strong> admin@gmail.com / admin123
 							</p>
 							<p className="text-xs text-gray-600">
-								<strong>Usuário:</strong> empregado@gmail.com / empregado123
+								<strong>Usuário:</strong> empregado@gmail.com / Senha: empregado123 / Salário: R$ 15 mil
+							</p>
+							<p className="text-xs text-gray-600">
+								<strong>Usuário:</strong> empregado-12@gmail.com / Senha: empregado123 / Salário: R$ 12
+								mil
+							</p>
+							<p className="text-xs text-gray-600">
+								<strong>Usuário:</strong> empregado-9@gmail.com / Senha: empregado123 / Salário: R$ 9
+								mil
+							</p>
+							<p className="text-xs text-gray-600">
+								<strong>Usuário:</strong> empregado-6@gmail.com / Senha: empregado123 / Salário: R$ 6
+								mil
+							</p>
+							<p className="text-xs text-gray-600">
+								<strong>Usuário:</strong> empregado-3@gmail.com / Senha: empregado123 / Salário: R$ 3
+								mil
 							</p>
 						</div>
 					</CardContent>

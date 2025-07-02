@@ -1,30 +1,13 @@
 import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-declare module "next-auth" {
-	interface Session {
-		user: {
-			id: string;
-			name?: string | null;
-			email?: string | null;
-			image?: string | null;
-			role?: string | undefined;
-		};
-	}
-
-	interface User {
-		id: string;
-		name?: string | null;
-		email?: string | null;
-		image?: string | null;
-		role?: string | undefined;
-	}
-}
-
 declare module "next-auth/jwt" {
 	interface JWT {
 		id: string;
 		role?: string | undefined;
+		salary?: number;
+		cpf?: string | null;
+		companyCnpj?: string | null;
 	}
 }
 
@@ -53,23 +36,24 @@ const authOptions = {
 						}),
 					});
 
-					console.log("response /login -> ", response);
-
 					if (!response.ok) {
 						const errorData = await response.json();
 						throw new Error(errorData.message || "Invalid credentials");
 					}
 
 					const {
-						data: { id, name, email, role },
+						data: { id, name, email, role, salary, cpf, companyCnpj },
 					} = await response.json();
 
-					if (id && name && email && role) {
+					if (id && name && email && role && salary && cpf && companyCnpj) {
 						return {
 							id,
 							name,
 							email,
+							salary,
 							role,
+							cpf,
+							companyCnpj,
 						};
 					}
 
@@ -104,6 +88,9 @@ const authOptions = {
 			if (user) {
 				token.id = user.id;
 				token.role = user.role;
+				token.salary = user.salary;
+				token.cpf = user.cpf;
+				token.companyCnpj = user.companyCnpj;
 			}
 			return token;
 		},
@@ -112,6 +99,9 @@ const authOptions = {
 			if (token && session.user) {
 				session.user.id = token.id;
 				session.user.role = token.role;
+				session.user.salary = token.salary;
+				session.user.cpf = token.cpf;
+				session.user.companyCnpj = token.companyCnpj;
 			}
 			return session;
 		},

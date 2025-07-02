@@ -18,6 +18,15 @@ export default function NovaPropostaPage() {
 	const [selectedInstallments, setSelectedInstallments] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
 
+	const salary = Number(session?.user?.salary ?? 0);
+	const maxAllowedAmount = (salary / 100) * 0.35;
+
+	useEffect(() => {
+		if (amount[0] > maxAllowedAmount) {
+			setAmount([Math.floor(maxAllowedAmount) * 10]);
+		}
+	}, [amount, maxAllowedAmount]);
+
 	useEffect(() => {
 		if (status === "unauthenticated") {
 			router.push("/entrar");
@@ -26,7 +35,9 @@ export default function NovaPropostaPage() {
 		if (status === "authenticated" && session?.user?.role === "admin") {
 			router.push("/propostas");
 		}
-	}, [status, router]);
+	}, [status, router, session]);
+
+	if (!session) return null;
 
 	const installmentOptions = [
 		{ installments: 1, value: amount[0] },
@@ -49,20 +60,26 @@ export default function NovaPropostaPage() {
 
 		setLoading(true);
 		try {
-			const response = await fetch("/api/proposals", {
+			const response = await fetch("http://localhost:3000/proposals", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					amount: amount[0],
-					installments: selectedInstallments,
-					installmentValue: amount[0] / selectedInstallments,
+					companyCnpj: session?.user?.companyCnpj,
+					employeeCpf: session?.user?.cpf,
+					totalLoanAmount: (amount[0] * 100).toString(),
+					numberOfInstallments: selectedInstallments.toString(),
 				}),
 			});
+			console.log("totalLoanAmount -> ", amount[0]);
+			console.log("session.user -> ", session.user);
+			console.log("response /proposals -> ", response);
+			const data = await response.json();
+			console.log("data do /propostals -> ", data);
 
-			if (response.ok) {
-				router.push("/nova-proposta");
+			if (data.success) {
+				alert("Proposta criado com sucesso!");
 			} else {
 				alert("Erro ao criar proposta");
 			}
@@ -74,8 +91,6 @@ export default function NovaPropostaPage() {
 	};
 
 	if (status === "loading") return <LoadingScreen />;
-
-	if (!session) return null;
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -102,7 +117,19 @@ export default function NovaPropostaPage() {
 									<div className="text-left">
 										<p className="text-gray-700">
 											Você possui saldo para Crédito Consignado pela empresa Seguros Seguradora.
-											Faça uma simulação! Digite quanto você precisa:
+											Faça uma simulação! Digite quanto você precisa (máximo 35% do seu salário):
+										</p>
+										<p className="text-sm text-gray-500 mt-1">
+											Seu salário: R${" "}
+											{Number(session.user?.salary ?? 0 / 10000).toLocaleString("pt-BR", {
+												minimumFractionDigits: 2,
+											})}
+										</p>
+										<p className="text-sm text-gray-500">
+											Valor máximo permitido: R${" "}
+											{maxAllowedAmount.toLocaleString("pt-BR", {
+												minimumFractionDigits: 2,
+											})}
 										</p>
 									</div>
 								</div>
@@ -115,15 +142,21 @@ export default function NovaPropostaPage() {
 									<div className="px-4">
 										<Slider
 											value={amount}
-											onValueChange={setAmount}
-											max={12000}
+											onValueChange={(val) => {
+												if (val[0] <= maxAllowedAmount) {
+													setAmount(val);
+												} else {
+													setAmount([Math.floor(maxAllowedAmount / 1000) * 1000]);
+												}
+											}}
+											max={Math.floor(maxAllowedAmount / 1000) * 1000}
 											min={1000}
 											step={1000}
 											className="w-full"
 										/>
 										<div className="flex justify-between text-sm text-gray-500 mt-2">
 											<span>R$ 1.000</span>
-											<span>R$ 12.000</span>
+											<span>R$ {Math.floor(maxAllowedAmount / 1000) * 1000}</span>
 										</div>
 									</div>
 								</div>
