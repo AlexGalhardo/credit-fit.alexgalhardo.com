@@ -28,13 +28,9 @@ export default function NovaPropostaPage() {
 	}, [amount, maxAllowedAmount]);
 
 	useEffect(() => {
-		if (status === "unauthenticated") {
-			router.push("/entrar");
-		}
+		if (status === "unauthenticated") router.push("/entrar");
 
-		if (status === "authenticated" && session?.user?.role === "admin") {
-			router.push("/propostas");
-		}
+		if (status === "authenticated" && session?.user?.role === "admin") router.push("/propostas");
 	}, [status, router, session]);
 
 	if (!session) return null;
@@ -72,11 +68,7 @@ export default function NovaPropostaPage() {
 					numberOfInstallments: selectedInstallments.toString(),
 				}),
 			});
-			console.log("totalLoanAmount -> ", amount[0]);
-			console.log("session.user -> ", session.user);
-			console.log("response /proposals -> ", response);
 			const data = await response.json();
-			console.log("data do /propostals -> ", data);
 
 			if (data.success) {
 				alert("Proposta criado com sucesso!");

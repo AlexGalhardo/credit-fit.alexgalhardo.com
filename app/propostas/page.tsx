@@ -10,53 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, ChevronDown, ChevronUp, Clock, CheckCircle } from "lucide-react";
 import { SessionWithRole } from "@/types/session";
 import LoadingScreen from "@/components/loading-screen";
-
-interface Company {
-	id: string;
-	name: string;
-	email: string;
-	cpf: string;
-	cnpj: string;
-	legalName: string;
-	createdAt: string;
-	updatedAt: string;
-	deletedAt: string | null;
-}
-
-interface Employee {
-	id: string;
-	fullName: string;
-	email: string;
-	cpf: string;
-	salary: number;
-	currentlyEmployed: boolean;
-	createdAt: string;
-	updatedAt: string;
-	deletedAt: string | null;
-	companyCnpj: string | null;
-}
-
-interface Proposal {
-	id: string;
-	status: "pending" | "approved" | "rejected";
-	totalLoanAmount: number;
-	numberOfInstallments: number;
-	installmentAmount: number;
-	firstDueDate: string;
-	installmentsPaid: number;
-	createdAt: string;
-	updatedAt: string;
-	deletedAt: string | null;
-	companyName: string;
-	employerEmail: string;
-	company: Company;
-	employee: Employee;
-}
-
-interface ApiResponse {
-	success: boolean;
-	data: Proposal[];
-}
+import { ApiResponse, Proposal } from "@/types/interfaces";
 
 export default function PropostasPage() {
 	const { data: session, status } = useSession() as { data: SessionWithRole; status: string };

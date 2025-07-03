@@ -12,105 +12,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cnpj, cpf } from "cpf-cnpj-validator";
-import { z } from "zod";
-
-const applyCpfMask = (value: string): string => {
-	const numbers = value.replace(/\D/g, "");
-	return numbers
-		.replace(/(\d{3})(\d)/, "$1.$2")
-		.replace(/(\d{3})(\d)/, "$1.$2")
-		.replace(/(\d{3})(\d{1,2})/, "$1-$2")
-		.replace(/(-\d{2})\d+?$/, "$1");
-};
-
-const applyCnpjMask = (value: string): string => {
-	const numbers = value.replace(/\D/g, "");
-	return numbers
-		.replace(/(\d{2})(\d)/, "$1.$2")
-		.replace(/(\d{3})(\d)/, "$1.$2")
-		.replace(/(\d{3})(\d)/, "$1/$2")
-		.replace(/(\d{4})(\d{1,2})/, "$1-$2")
-		.replace(/(-\d{2})\d+?$/, "$1");
-};
-
-const applyCurrencyMask = (value: string): string => {
-	const numbers = value.replace(/\D/g, "");
-	if (!numbers) return "";
-
-	const amount = parseInt(numbers) / 100;
-	return amount.toLocaleString("pt-BR", {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	});
-};
-
-const removeMask = (value: string): string => {
-	return value.replace(/\D/g, "");
-};
-
-const createCompanySchema = z.object({
-	legalName: z.string().min(8, "A razão social da empresa deve ter no mínimo 8 caracteres"),
-	name: z.string().min(4, "O nome fantasia da empresa deve ter no mínimo 4 caracteres"),
-	email: z.string().email("Formato de e-mail inválido"),
-	cpf: z.string().refine((value) => cpf.isValid(value), {
-		message: "CPF inválido",
-	}),
-	cnpj: z.string().refine((value) => cnpj.isValid(value), {
-		message: "CNPJ inválido",
-	}),
-});
-
-const createEmployeeSchema = z
-	.object({
-		fullName: z
-			.string()
-			.min(4, "O nome deve ter no mínimo 4 caracteres")
-			.max(32, "O nome deve ter no máximo 32 caracteres"),
-		email: z.string().email("E-mail inválido"),
-		cpf: z.string().refine((val) => cpf.isValid(val), { message: "CPF inválido" }),
-		salary: z
-			.number()
-			.int()
-			.min(100000, "O salário deve ser no mínimo R$ 1.000,00")
-			.max(9999999, "O salário deve ser no máximo R$ 99.999,99"),
-		currentlyEmployed: z.boolean(),
-		companyCnpj: z
-			.string()
-			.optional()
-			.refine((val) => (val ? cnpj.isValid(val) : true), { message: "CNPJ inválido" }),
-	})
-	.superRefine((data, ctx) => {
-		if (!data.companyCnpj && data.currentlyEmployed !== false) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				message: "currentlyEmployed deve ser false se companyCnpj não for fornecido",
-				path: ["currentlyEmployed"],
-			});
-		}
-	});
-
-type CompanyFormData = z.infer<typeof createCompanySchema>;
-type EmployeeFormData = z.infer<typeof createEmployeeSchema>;
-
-const mockCompanies = [
-	{ cnpj: "11444777000161", name: "Tech Solutions Ltda" },
-	{ cnpj: "22555888000172", name: "Inovação Digital S.A." },
-	{ cnpj: "33666999000183", name: "Consultoria Moderna Ltda" },
-	{ cnpj: "44777000100014", name: "Logística Rápida ME" },
-	{ cnpj: "55888000200025", name: "AgroTech Brasil Ltda" },
-	{ cnpj: "66999000300036", name: "EducaMais S.A." },
-	{ cnpj: "77000100400047", name: "Construtora Futura Ltda" },
-	{ cnpj: "88000200500058", name: "Serviços Médicos Avançados" },
-	{ cnpj: "99000300600069", name: "Mercado Online Varejo Ltda" },
-	{ cnpj: "10101010000070", name: "Green Energy Solutions S.A." },
-];
+import { CompanyFormDataType, createCompanySchema, createEmployeeSchema, EmployeeFormDataType } from "@/lib/schemas";
+import { applyCnpjMask, applyCpfMask, applyCurrencyMask, removeMask } from "@/lib/masks";
+import { mockCompanies } from "@/lib/mocks";
 
 export default function SignUpPage() {
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
 
-	const companyForm = useForm<CompanyFormData>({
+	const companyForm = useForm<CompanyFormDataType>({
 		resolver: zodResolver(createCompanySchema),
 		defaultValues: {
 			legalName: "",
@@ -121,7 +31,7 @@ export default function SignUpPage() {
 		},
 	});
 
-	const employeeForm = useForm<EmployeeFormData>({
+	const employeeForm = useForm<EmployeeFormDataType>({
 		resolver: zodResolver(createEmployeeSchema),
 		defaultValues: {
 			fullName: "",
@@ -133,7 +43,7 @@ export default function SignUpPage() {
 		},
 	});
 
-	const handleCompanySubmit = async (data: CompanyFormData) => {
+	const handleCompanySubmit = async (data: CompanyFormDataType) => {
 		setLoading(true);
 
 		try {
@@ -160,7 +70,7 @@ export default function SignUpPage() {
 		}
 	};
 
-	const handleEmployeeSubmit = async (data: EmployeeFormData) => {
+	const handleEmployeeSubmit = async (data: EmployeeFormDataType) => {
 		setLoading(true);
 
 		const submitData = {
