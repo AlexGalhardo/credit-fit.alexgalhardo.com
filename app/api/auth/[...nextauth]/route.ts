@@ -25,7 +25,7 @@ const authOptions = {
 				}
 
 				try {
-					const response = await fetch("http://localhost:3000/login", {
+					const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -35,11 +35,6 @@ const authOptions = {
 							password: credentials.password,
 						}),
 					});
-
-					if (!response.ok) {
-						const errorData = await response.json();
-						throw new Error(errorData.message || "Invalid credentials");
-					}
 
 					const {
 						data: { id, name, email, role, salary, cpf, companyCnpj },
@@ -58,11 +53,8 @@ const authOptions = {
 					}
 
 					throw new Error("Invalid credentials");
-				} catch (error) {
-					if (error instanceof Error) {
-						throw error;
-					}
-					throw new Error("Authentication failed");
+				} catch (error: any) {
+					throw new Error(`Authentication failed, error: ${error?.message}`);
 				}
 			},
 		}),

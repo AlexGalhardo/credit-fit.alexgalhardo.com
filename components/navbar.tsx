@@ -20,7 +20,7 @@ export function Navbar() {
 	return (
 		<nav className="bg-teal-600 text-white px-4 py-3">
 			<div className="max-w-7xl mx-auto flex items-center justify-between">
-				<Link href="/dashboard" className="text-xl font-bold flex items-center gap-2">
+				<Link href="#" className="text-xl font-bold flex items-center gap-2">
 					Credit Fit
 				</Link>
 

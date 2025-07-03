@@ -28,13 +28,8 @@ export default function NovaPropostaPage() {
 	}, [amount, maxAllowedAmount]);
 
 	useEffect(() => {
-		if (status === "unauthenticated") {
-			router.push("/entrar");
-		}
-
-		if (status === "authenticated" && session?.user?.role === "admin") {
-			router.push("/propostas");
-		}
+		if (status === "unauthenticated") router.push("/entrar");
+		if (status === "authenticated" && session?.user?.role === "admin") router.push("/propostas");
 	}, [status, router, session]);
 
 	if (!session) return null;
@@ -56,11 +51,11 @@ export default function NovaPropostaPage() {
 	};
 
 	const handleSubmitProposal = async () => {
-		if (!selectedInstallments) return;
+		if (!selectedInstallments || loading) return;
 
 		setLoading(true);
 		try {
-			const response = await fetch("http://localhost:3000/proposals", {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/proposals`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -72,14 +67,10 @@ export default function NovaPropostaPage() {
 					numberOfInstallments: selectedInstallments.toString(),
 				}),
 			});
-			console.log("totalLoanAmount -> ", amount[0]);
-			console.log("session.user -> ", session.user);
-			console.log("response /proposals -> ", response);
 			const data = await response.json();
-			console.log("data do /propostals -> ", data);
 
 			if (data.success) {
-				alert("Proposta criado com sucesso!");
+				alert("Proposta criada com sucesso!");
 			} else {
 				alert("Erro ao criar proposta");
 			}
@@ -121,13 +112,7 @@ export default function NovaPropostaPage() {
 										</p>
 										<p className="text-sm text-gray-500 mt-1">
 											Seu salário: R${" "}
-											{Number(session.user?.salary ?? 0 / 10000).toLocaleString("pt-BR", {
-												minimumFractionDigits: 2,
-											})}
-										</p>
-										<p className="text-sm text-gray-500">
-											Valor máximo permitido: R${" "}
-											{maxAllowedAmount.toLocaleString("pt-BR", {
+											{(Number(session.user?.salary ?? 0) / 100).toLocaleString("pt-BR", {
 												minimumFractionDigits: 2,
 											})}
 										</p>

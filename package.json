@@ -2,13 +2,11 @@
   "name": "credit-fit.alexgalhardo.com",
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "lint:next": "next lint",
     "start": "next start",
     "lint": "biome check app/ --fix --unsafe",
     "format": "biome format app/ lib/ hooks/ components/ types/ --fix",
-    "migrate": "prisma migrate dev",
-    "prisma:studio": "bunx prisma studio",
     "husky": "bunx husky"
   },
   "lint-staged": {

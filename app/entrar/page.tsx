@@ -17,6 +17,7 @@ export default function LoginPage() {
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
+	const [errorLogin, setErrorLogin] = useState("");
 
 	const { data: session } = useSession() as { data: SessionWithRole; status: string };
 
@@ -36,12 +37,10 @@ export default function LoginPage() {
 				redirect: false,
 			});
 
-			console.log("result signIn -> ", result);
-
 			if (result?.ok) {
 				router.push("/nova-proposta");
 			} else {
-				alert("Credenciais inválidas");
+				setErrorLogin("Credenciais inválidas");
 			}
 		} catch (error) {
 			alert("Erro ao fazer login");
@@ -87,6 +86,8 @@ export default function LoginPage() {
 							<Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={loading}>
 								{loading ? "Entrando..." : "Entrar"}
 							</Button>
+
+							{errorLogin && <p className="text-red-500 mt-2 text-center font-bold">{errorLogin}</p>}
 						</form>
 
 						<div className="mt-4 text-center">
