@@ -10,10 +10,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, User } from "lucide-react";
-import { SessionWithRole } from "@/types/session";
+import { SessionWithRoleType } from "@/types/session";
 
 export function Navbar() {
-	const { data: session } = useSession() as { data: SessionWithRole };
+	const { data: session } = useSession() as { data: SessionWithRoleType };
 
 	if (!session) return null;
 

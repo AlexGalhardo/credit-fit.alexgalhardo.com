@@ -7,16 +7,21 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { SessionWithRole } from "@/types/session";
+import { SessionWithRoleType } from "@/types/session";
 import LoadingScreen from "@/components/loading-screen";
 
 export default function NovaPropostaPage() {
-	const { data: session, status } = useSession() as { data: SessionWithRole; status: string };
+	const { data: session, status } = useSession() as { data: SessionWithRoleType; status: string };
 	const router = useRouter();
 	const [step, setStep] = useState(1);
 	const [amount, setAmount] = useState([1000]);
 	const [selectedInstallments, setSelectedInstallments] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
+	const [proposalResult, setProposalResult] = useState<{
+		success: boolean;
+		data?: any;
+		message?: string;
+	} | null>(null);
 
 	const salary = Number(session?.user?.salary ?? 0);
 	const maxAllowedAmount = (salary / 100) * 0.35;
@@ -63,19 +68,20 @@ export default function NovaPropostaPage() {
 				body: JSON.stringify({
 					companyCnpj: session?.user?.companyCnpj,
 					employeeCpf: session?.user?.cpf,
-					totalLoanAmount: (amount[0] * 100).toString(),
-					numberOfInstallments: selectedInstallments.toString(),
+					totalLoanAmount: amount[0] * 100,
+					numberOfInstallments: selectedInstallments,
 				}),
 			});
 			const data = await response.json();
 
-			if (data.success) {
-				alert("Proposta criada com sucesso!");
-			} else {
-				alert("Erro ao criar proposta");
-			}
+			setProposalResult(data);
+			setStep(4);
 		} catch (error) {
-			alert("Erro ao criar proposta");
+			setProposalResult({
+				success: false,
+				message: "Erro ao criar proposta",
+			});
+			setStep(4);
 		} finally {
 			setLoading(false);
 		}
@@ -280,6 +286,112 @@ export default function NovaPropostaPage() {
 										disabled={loading}
 									>
 										{loading ? "Solicitando..." : "Solicitar empréstimo"}
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					)}
+
+					{step === 4 && proposalResult && (
+						<Card>
+							<CardContent className="p-8">
+								<h2 className="text-xl font-semibold text-teal-600 mb-6">Resultado da Proposta</h2>
+
+								{proposalResult.success ? (
+									<div className="space-y-6">
+										<div className="flex items-center gap-4 p-4 bg-green-100 rounded-lg mb-8">
+											<div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
+												✓
+											</div>
+											<div className="text-left">
+												<p className="text-green-800 font-semibold">Empréstimo Aprovado!</p>
+												<p className="text-green-700">
+													Sua proposta foi aprovada e o empréstimo será concedido.
+												</p>
+											</div>
+										</div>
+
+										<div className="space-y-4 p-4 bg-green-50 rounded-lg">
+											<div className="flex justify-between">
+												<span className="font-semibold text-green-800">Score de Crédito</span>
+												<span className="text-green-700">
+													{proposalResult.data.employeeCreditScore}
+												</span>
+											</div>
+											<div className="flex justify-between">
+												<span className="font-semibold text-green-800">
+													Valor do Empréstimo
+												</span>
+												<span className="text-green-700">
+													R${" "}
+													{(proposalResult.data.totalLoanAmount / 100).toLocaleString(
+														"pt-BR",
+														{
+															minimumFractionDigits: 2,
+														},
+													)}
+												</span>
+											</div>
+											<div className="flex justify-between">
+												<span className="font-semibold text-green-800">Parcelas</span>
+												<span className="text-green-700">
+													{proposalResult.data.numberOfInstallments} x R${" "}
+													{(proposalResult.data.installmentAmount / 100).toLocaleString(
+														"pt-BR",
+														{
+															minimumFractionDigits: 2,
+														},
+													)}
+												</span>
+											</div>
+											<div className="flex justify-between">
+												<span className="font-semibold text-green-800">Status</span>
+												<span className="text-green-700">{proposalResult.data.status}</span>
+											</div>
+											<div className="flex justify-between">
+												<span className="font-semibold text-green-800">
+													Primeiro Vencimento
+												</span>
+												<span className="text-green-700">
+													{new Date(proposalResult.data.firstDueDate).toLocaleDateString(
+														"pt-BR",
+													)}
+												</span>
+											</div>
+										</div>
+									</div>
+								) : (
+									<div className="space-y-6">
+										<div className="flex items-center gap-4 p-4 bg-red-100 rounded-lg mb-8">
+											<div className="w-12 h-12 bg-red-200 rounded-full flex items-center justify-center">
+												✗
+											</div>
+											<div className="text-left">
+												<p className="text-red-800 font-semibold">Empréstimo Não Aprovado</p>
+											</div>
+										</div>
+
+										<div className="space-y-4 p-4 bg-red-50 rounded-lg">
+											<div className="flex justify-between">
+												<span className="text-red-700">
+													{proposalResult?.message ??
+														"Seu crédito score ou seu salário atual não permitiu a aprovação desse emprestimo nesse momento."}
+												</span>
+											</div>
+										</div>
+									</div>
+								)}
+
+								<div className="flex gap-4 mt-8">
+									<Button
+										className="flex-1 bg-teal-600 hover:bg-teal-700"
+										onClick={() => {
+											setStep(1);
+											setProposalResult(null);
+											setSelectedInstallments(null);
+										}}
+									>
+										Nova Simulação
 									</Button>
 								</div>
 							</CardContent>

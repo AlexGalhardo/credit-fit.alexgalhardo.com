@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SessionWithRole } from "@/types/session";
+import { SessionWithRoleType } from "@/types/session";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ export default function LoginPage() {
 	const router = useRouter();
 	const [errorLogin, setErrorLogin] = useState("");
 
-	const { data: session } = useSession() as { data: SessionWithRole; status: string };
+	const { data: session } = useSession() as { data: SessionWithRoleType; status: string };
 
 	useEffect(() => {
 		if (session && session.user?.role === "admin") router.push("/propostas");

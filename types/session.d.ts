@@ -1,4 +1,4 @@
-export type SessionUserWithRole = {
+export type SessionUserWithRoleType = {
 	name?: string | null;
 	email?: string | null;
 	image?: string | null;
@@ -8,7 +8,7 @@ export type SessionUserWithRole = {
 	companyCnpj?: string | null;
 };
 
-export type SessionWithRole = {
-	user?: SessionUserWithRole;
+export type SessionWithRoleType = {
+	user?: SessionUserWithRoleType;
 	[key: string]: any;
 } | null;

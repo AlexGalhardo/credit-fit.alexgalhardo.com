@@ -27,9 +27,7 @@ export default function NotFound() {
 			<div className="max-w-md text-center space-y-6">
 				<h1 className="text-6xl font-bold text-rose-600">404</h1>
 				<h2 className="text-3xl font-semibold">Página não encontrada</h2>
-				<p className="text-lg text-gray-500">
-					A página que você está procurando não existe ou foi removida.
-				</p>
+				<p className="text-lg text-gray-500">A página que você está procurando não existe ou foi removida.</p>
 				<p className="text-gray-500">
 					Redirecionando em <span className="font-bold text-rose-600">{countdown}</span> segundos...
 				</p>

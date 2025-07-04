@@ -1,8 +1,7 @@
-export interface Company {
+export interface CompanyInterface {
 	id: string;
 	name: string;
 	email: string;
-	cpf: string;
 	cnpj: string;
 	legalName: string;
 	createdAt: string;
@@ -10,7 +9,7 @@ export interface Company {
 	deletedAt: string | null;
 }
 
-export interface Employee {
+export interface EmployeeInterface {
 	id: string;
 	fullName: string;
 	email: string;
@@ -23,24 +22,32 @@ export interface Employee {
 	companyCnpj: string | null;
 }
 
-export interface Proposal {
+enum ProposalStatus {
+	APPROVED = "APPROVED",
+	REJECTED = "REJECTED",
+}
+
+export interface ProposalInterface {
 	id: string;
-	status: "pending" | "approved" | "rejected";
+	status: ProposalStatus;
+	companyCnpj: string;
+	employeeCpf: string;
 	totalLoanAmount: number;
 	numberOfInstallments: number;
 	installmentAmount: number;
 	firstDueDate: string;
 	installmentsPaid: number;
+	companyName: string;
+	employerEmail: string;
+	employeeCreditScore: number;
 	createdAt: string;
 	updatedAt: string;
 	deletedAt: string | null;
-	companyName: string;
-	employerEmail: string;
-	company: Company;
-	employee: Employee;
+	company: CompanyInterface;
+	employee: EmployeeInterface;
 }
 
-export interface ApiResponse {
+export interface ApiResponseInterface {
 	success: boolean;
-	data: Proposal[];
+	data: ProposalInterface[];
 }
